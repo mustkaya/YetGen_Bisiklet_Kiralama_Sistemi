@@ -1,0 +1,195 @@
+class Bisiklet:
+
+    def __init__(self, marka="Undefined", ):
+        self.marka = marka
+        self.surme_saat_suresi = 0.0
+        self.sure_limiti = 0.0
+
+    def __str__(self):
+        return self.marka
+
+class Surucu:
+
+    def __init__(self, adSoyad: str, butce: float, kiralananBisiklet: Bisiklet):
+        self.adSoyad = adSoyad
+        self.butce = butce
+        self.kiralananBisiklet = kiralananBisiklet
+
+    def kiralama_yansit(self, odeme=float):
+        self.butce -= odeme
+
+    def iade_et(self):
+        bisiklet = self.kiralananBisiklet
+        return bisiklet
+
+    def bisiklet_getir(self):
+        return self.kiralananBisiklet
+
+
+class KiralamaSistemi:
+
+    ilk_display = True
+
+
+    def __init__(self, saatlik_ucret: int, gunluk_ucret: int, haftalik_ucret: int):
+        self.saatlik_ucret = saatlik_ucret
+        self.gunluk_ucret = gunluk_ucret
+        self.haftalik_ucret = haftalik_ucret
+
+        self.__bisikletler = []
+        self.__kiralanmislar = []
+
+    def menu(self, kullanici: Surucu):
+
+        while True:
+
+            if self.ilk_display != False:
+                print("---YETKİN BİSİKLET'E HOSGELDİNİZ---")
+            self.ilk_display = False
+            print()
+            print("1- Bisiklet Kirala")
+            print("2- Bisiklet İade Et")
+            print("3- Bisikletler Modellerini Goster")
+            print("4- Cikis Yap")
+
+            secenek = int(input("\nYapmak istediginiz islemi seciniz: "))
+            while secenek < 1 or secenek > 4:
+                secenek = int(input("Tekrar giriniz:"))
+
+            if secenek == 4:
+                print("İyi günler dileriz...")
+                return
+            if secenek == 2:
+                self.geri_temin_et(kullanici)
+            if secenek == 3:
+                self.listele()
+            else:
+                self.kira_menu(kullanici)
+
+
+    def kira_menu(self, kullanici: Surucu):
+        print("\n1- Saatlik " + str(self.saatlik_ucret) + " TL karşılığında bisiklet talep edin")
+        print("2- Gunlugu " + str(self.gunluk_ucret) + " TL karşılığında bisiklet talep edin")
+        print("3- Haftaligi " + str(self.haftalik_ucret) + " TL karşılığında bisiklet talep edin")
+
+
+        secenek = int(input("\nSeciminizi giriniz: "))
+        while secenek < 1 or secenek > 3:
+            secenek = int(input("Tekrar giriniz:"))
+
+        if secenek == 1:
+            self.kira_odeme(kullanici, 'S')
+            print()
+            print()
+        elif secenek == 2:
+            self.kira_odeme(kullanici, 'G')
+            print()
+            print()
+        elif secenek == 3:
+            self.kira_odeme(kullanici, 'H')
+            print()
+            print()
+
+
+    def bisiklet_var_mi(self, bisiklet: Bisiklet):
+        if bisiklet not in self.__bisikletler:
+            print("Kiralamak istediginiz bisiklet bulunmamaktadır.")
+            return False
+
+        return True
+
+    def listele(self):
+        for i in range(len(self.__bisikletler)):
+
+            print(str(i + 1) + "- " + str(self.__bisikletler[i]))
+
+    def bisiklet_ekle(self, bisiklet: Bisiklet):
+        self.__bisikletler.append(bisiklet)
+
+    def bisiklet_kirala(self, bisiklet: Bisiklet):
+
+        if not self.bisiklet_var_mi(bisiklet):
+            return
+
+        self.__bisikletler.remove(bisiklet)
+        self.__kiralanmislar.append(bisiklet)
+
+    def kira_odeme(self, kullanici: Surucu, type = str):
+
+        print()
+        self.listele()
+
+        bisiklet_sirasi = int(input("\nKiralamak istediginiz bisikleti seciniz: "))
+        while bisiklet_sirasi < 1 or bisiklet_sirasi > len(self.__bisikletler):
+            bisiklet_sirasi = int(
+                input("\nHatali bir giris yaptiniz. Kiralamak istediginiz bisikleti tekrar seciniz (1 ila " + str(len(self.__bisikletler)) + " arası) : "))
+
+        bisiklet = self.__bisikletler[bisiklet_sirasi - 1]
+
+        print("\nBütceniz: " + str(kullanici.butce))
+        sure = 0
+        if type == 'S':
+            sure = int(input("Kac saatlik almak istiyorsunuz: "))
+            while float(sure * self.saatlik_ucret) > float(kullanici.butce):
+                sure = int(input(
+                    "Butceniz yetersiz. Kiralamak istediginiz saat süresini tekrar giriniz (0 Girmeniz durumunda menu'ye yonlendirileceksiniz)"))
+        elif type == 'G':
+            sure = int(input("Kac günlük almak istiyorsunuz: "))
+            while float(sure * self.gunluk_ucret) > float(kullanici.butce):
+                sure = int(input(
+                    "Butceniz yetersiz. Kiralamak istediginiz gun sayisini tekrar giriniz (0 Girmeniz durumunda menu'ye yonlendirileceksiniz)"))
+        elif type == 'H':
+            sure = int(input("Kac haftalık almak istiyorsunuz: "))
+            while float(sure * self.haftalik_ucret) > float(kullanici.butce):
+                sure = int(input(
+                    "Butceniz yetersiz. Kiralamak istediginiz hafta sayisini tekrar giriniz (0 Girmeniz durumunda menu'ye yonlendirileceksiniz)"))
+        if sure == 0:
+            return
+
+        bisiklet.sure_limiti = sure
+
+        kullanici.kiralananBisiklet = bisiklet
+        sure_ucreti = 0
+        if type == 'S':
+            sure_ucreti = self.saatlik_ucret
+        elif type == 'G':
+            sure_ucreti = self.gunluk_ucret
+        elif type == 'H':
+            sure_ucreti = self.haftalik_ucret
+
+        kullanici.kiralama_yansit(sure * sure_ucreti)
+        print(str(bisiklet) + " marka bisiklet için " + str(sure * sure_ucreti) + " TL kiralama ücreti ödendi.")
+        print("İyi surusler dileriz...")
+        self.bisiklet_kirala(bisiklet)
+        
+
+    def geri_temin_et(self, kullanici):
+
+        bisiklet = kullanici.kiralananBisiklet
+        print("İade edilecek bisiklet: ",bisiklet)
+        bisiklet = kullanici.iade_et()
+        if bisiklet in self.__kiralanmislar:
+            self.__kiralanmislar.remove(bisiklet)
+            self.__bisikletler.append(bisiklet)
+            print("İade başarılı olmuştur. İyi günler dileriz.")
+            kullanici.kiralananBisiklet = None
+
+
+bisiklet_1 = Bisiklet("Salcano")
+bisiklet_2 = Bisiklet("Bianchi")
+bisiklet_3 = Bisiklet("Carraro")
+bisiklet_4 = Bisiklet("Bisan")
+bisiklet_5 = Bisiklet("Corelli")
+bisiklet_6 = Bisiklet("Kron")
+
+kiralama_Sistemi = KiralamaSistemi(saatlik_ucret=4, gunluk_ucret=65, haftalik_ucret=300)
+kiralama_Sistemi.bisiklet_ekle(bisiklet_1)
+kiralama_Sistemi.bisiklet_ekle(bisiklet_2)
+kiralama_Sistemi.bisiklet_ekle(bisiklet_3)
+kiralama_Sistemi.bisiklet_ekle(bisiklet_4)
+kiralama_Sistemi.bisiklet_ekle(bisiklet_5)
+kiralama_Sistemi.bisiklet_ekle(bisiklet_6)
+
+kullanici = Surucu("Mustafa Kaya", 1200.0, None)
+
+kiralama_Sistemi.menu(kullanici)
